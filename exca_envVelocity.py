@@ -1,5 +1,4 @@
 import gym
-import collections
 import math
 import time
 import numpy as np
@@ -17,7 +16,6 @@ class ExcaBot(gym.Env):
             physicsClient = p.connect(p.DIRECT)#or p.DIRECT for non-graphical version
 
         self.MAX_EPISODE = 1_000_000
-        # self.theta_now = self._get_joint_state()
         self.dt = 1.0/240.0
         # threshold = np.array([13,13,13,0], dtype = np.float32) #max x,y,z the end effector can reach
         self.min_obs = np.array([-3.1, -0.954, -0.1214, -0.32, -10.0, -10.0, -10.0, -10.0, -1000], dtype = np.float32)
@@ -29,15 +27,15 @@ class ExcaBot(gym.Env):
         self.steps_left = self.MAX_EPISODE
         self.state = [0,0,0,0,0,0,0,0,0] #[theta0, theta1, theta2, theta3, thetadot0, thetadot1, thetadot2, thethadot3, norm_error]
         self.orientation = [0,0,0,0] #qarternion
-        self.theta_target = [1.5,-0.628,-0.1214, 0.3] #theta0 = joint1, theta1 = joint2, theta2 = joint3, theta3 = joint4
+        self.theta_target = [1.5,-0.628,-0.125, 0.3] #theta0 = joint1, theta1 = joint2, theta2 = joint3, theta3 = joint4
         self.start_simulation()
 
     def step(self, action):
         action = np.clip(action, -self.max_velocity, self.max_velocity)
         p.setJointMotorControl2(self.boxId, 1 , p.VELOCITY_CONTROL, targetVelocity = action[0], force= 50_000)
-        p.setJointMotorControl2(self.boxId, 2 , p.VELOCITY_CONTROL, targetVelocity = action[1], force= 500_000)
+        p.setJointMotorControl2(self.boxId, 2 , p.VELOCITY_CONTROL, targetVelocity = action[1], force= 250_000)
         p.setJointMotorControl2(self.boxId, 3 , p.VELOCITY_CONTROL, targetVelocity = action[2], force= 250_000)
-        p.setJointMotorControl2(self.boxId, 4 , p.VELOCITY_CONTROL, targetVelocity = action[3], force= 150_000)
+        p.setJointMotorControl2(self.boxId, 4 , p.VELOCITY_CONTROL, targetVelocity = action[3], force= 250_000)
 
         #Update Simulations
         p.stepSimulation()
@@ -47,14 +45,13 @@ class ExcaBot(gym.Env):
 
         #Calculate error
         self.theta_now = self._get_joint_state()
-        max_theta = np.array([3.1, 1.03, 1.51, 3.14])
 
         done = bool(self.steps_left<0)
-        error = self.theta_now - np.array(self.theta_target)
+        error = self.theta_now - self.normalize(np.array(self.theta_target))
         norm_error = np.linalg.norm(error)**2
         if not done:
-            if np.any(self.theta_now > self.max_obs[:4]) or np.any(self.theta_now < self.min_obs[:4]):
-                self.reward = - 1e09
+            if np.any(self.theta_now > self.normalize(self.max_obs[:4])) or np.any(self.theta_now < self.normalize(self.min_obs[:4])):
+                self.reward = -1000
             else:
                 self.reward = - (norm_error + 0.01*action[0]**2 + 0.01*action[1]**2 + 0.01*action[2]**2 + 0.01*action[3]**2)
             self.steps_left -= 1
@@ -95,7 +92,7 @@ class ExcaBot(gym.Env):
 
     def _get_joint_state(self):
         theta0, theta1, theta2, theta3 = p.getJointStates(self.boxId, [1,2,3,4])
-        return self.normalize_angle(np.array([theta0[0], theta1[0], theta2[0], theta3[0]]))
+        return self.normalize(np.array([theta0[0], theta1[0], theta2[0], theta3[0]]))
 
-    def normalize_angle(self, x):
-        return (x)%(2*np.pi)
+    def normalize(self, x):
+        return ((x+np.pi)%(2*np.pi)) - np.pi
