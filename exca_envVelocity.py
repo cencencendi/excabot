@@ -45,15 +45,19 @@ class ExcaBot(gym.Env):
 
         #Calculate error
         self.theta_now = self._get_joint_state()
+        penalty = 0
+
+        if np.any(self.theta_now > self.normalize(self.max_obs[:4])) or np.any(self.theta_now < self.normalize(self.min_obs[:4])):
+            less_idx = np.argwhere(self.theta_now < self.normalize(self.min_obs[:4]))[:,0]
+            more_idx = np.argwhere(self.theta_now > self.normalize(self.max_obs[:4]))[:,0]
+            for less, more in zip(less_idx, more_idx):
+                penalty += 10 * ((self.theta_now[less] - self.normalize(self.min_obs[:4])[less])**2 + (self.theta_now[more] - self.normalize(self.max_obs[:4])[more]**2))
 
         done = bool(self.steps_left<0)
-        error = self.theta_now - self.normalize(np.array(self.theta_target))
+        error = self.pose_now - self.pose_target
         norm_error = np.linalg.norm(error)**2
         if not done:
-            if np.any(self.theta_now > self.normalize(self.max_obs[:4])) or np.any(self.theta_now < self.normalize(self.min_obs[:4])):
-                self.reward = -1000
-            else:
-                self.reward = - (norm_error + 0.01*action[0]**2 + 0.01*action[1]**2 + 0.01*action[2]**2 + 0.01*action[3]**2)
+            self.reward = - (norm_error + 0.001*action[0]**2 + 0.001*action[1]**2 + 0.001*action[2]**2 + 0.001*action[3]**2 + penalty)
             self.steps_left -= 1
 
         #Update State
