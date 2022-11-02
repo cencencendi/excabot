@@ -3,7 +3,7 @@ import collections
 import math
 import numpy as np
 
-from exca_env1 import ExcaBot
+from exca_envPosition import ExcaBot
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.env_util import make_vec_env
