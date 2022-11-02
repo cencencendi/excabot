@@ -48,16 +48,20 @@ class ExcaBot(gym.Env):
         self.theta_now = self._get_joint_state()
         self.pose_now = self._get_link_state(4)
 
+        penalty = 0
+        if np.any(self.theta_now > self.normalize(self.max_obs[3:7])) or np.any(self.theta_now < self.normalize(self.min_obs[3:7])):
+            less_idx = np.argwhere(self.theta_now < self.normalize(self.min_obs[3:7]))[:,0]
+            more_idx = np.argwhere(self.theta_now > self.normalize(self.max_obs[3:7]))[:,0]
+            for less, more in zip(less_idx, more_idx):
+                penalty += 0.1 * ((self.theta_now[less] - self.normalize(self.min_obs[3:7])[less])**2 + (self.theta_now[more] - self.normalize(self.max_obs[3:7])[more]**2))
+
         done = bool(self.steps_left<0)
         error = self.pose_now - self.pose_target
         norm_error = np.linalg.norm(error)**2
         if not done:
- 
-            self.reward = - (norm_error + 0.001*action[0]**2 + 0.001*action[1]**2 + 0.001*action[2]**2 + 0.001*action[3]**2)
+            self.reward = - (norm_error + 0.001*action[0]**2 + 0.001*action[1]**2 + 0.001*action[2]**2 + 0.001*action[3]**2 + penalty)
             self.steps_left -= 1
 
-        if np.any(self.theta_now > self.normalize(self.max_obs[:4])) or np.any(self.theta_now < self.normalize(self.min_obs[:4])):
-            self.reward = -1000
         #Update State
         self.state = np.concatenate((self.pose_now ,self.theta_now, np.array(action), np.array([norm_error])), axis=None)
         
