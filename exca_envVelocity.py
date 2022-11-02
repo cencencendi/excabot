@@ -1,5 +1,3 @@
-from tkinter.tix import ButtonBox
-from cv2 import norm
 import gym
 import collections
 import math
@@ -49,18 +47,17 @@ class ExcaBot(gym.Env):
 
         #Calculate error
         self.theta_now = self._get_joint_state()
+        max_theta = np.array([3.1, 1.03, 1.51, 3.14])
 
         done = bool(self.steps_left<0)
-        norm_error = math.inf
+        error = self.theta_now - np.array(self.theta_target)
+        norm_error = np.linalg.norm(error)**2
         if not done:
-            if (self.theta_now < self.min_obs[:4]).any() or (self.theta_now > self.max_obs[:4]).any():
+            if np.any(self.theta_now > self.max_obs[:4]) or np.any(self.theta_now < self.min_obs[:4]):
                 self.reward = - 1e09
             else:
-                error = self.theta_now - np.array(self.theta_target)
-                norm_error = np.linalg.norm(error)**2
                 self.reward = - (norm_error + 0.01*action[0]**2 + 0.01*action[1]**2 + 0.01*action[2]**2 + 0.01*action[3]**2)
             self.steps_left -= 1
-
 
         #Update State
         self.state = np.concatenate((self.theta_now, np.array(action), np.array([norm_error])), axis=None)
