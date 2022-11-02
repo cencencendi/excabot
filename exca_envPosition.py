@@ -52,12 +52,12 @@ class ExcaBot(gym.Env):
         error = self.pose_now - self.pose_target
         norm_error = np.linalg.norm(error)**2
         if not done:
-            if np.any(self.theta_now > self.normalize(self.max_obs[:4])) or np.any(self.theta_now < self.normalize(self.min_obs[:4])):
-                self.reward = -1000
-            else:
-                self.reward = - (norm_error + 0.001*action[0]**2 + 0.001*action[1]**2 + 0.001*action[2]**2 + 0.001*action[3]**2)
+ 
+            self.reward = - (norm_error + 0.001*action[0]**2 + 0.001*action[1]**2 + 0.001*action[2]**2 + 0.001*action[3]**2)
             self.steps_left -= 1
 
+        if np.any(self.theta_now > self.normalize(self.max_obs[:4])) or np.any(self.theta_now < self.normalize(self.min_obs[:4])):
+            self.reward = -1000
         #Update State
         self.state = np.concatenate((self.pose_now ,self.theta_now, np.array(action), np.array([norm_error])), axis=None)
         
