@@ -7,7 +7,7 @@ from gym import spaces
 import pybullet_data
 
 class ExcaBot(gym.Env):
-    def __init__(self, sim_active) :
+    def __init__(self, sim_active):
         super(ExcaBot, self).__init__()
         self.sim_active = sim_active
         if self.sim_active:
