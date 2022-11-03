@@ -54,7 +54,7 @@ class ExcaBot(gym.Env):
                 penalty += 10 * ((self.theta_now[less] - self.normalize(self.min_obs[:4])[less])**2 + (self.theta_now[more] - self.normalize(self.max_obs[:4])[more]**2))
 
         done = bool(self.steps_left<0)
-        error = self.pose_now - self.pose_target
+        error = self.theta_now - self.theta_target
         norm_error = np.linalg.norm(error)**2
         if not done:
             self.reward = - (norm_error + 0.001*action[0]**2 + 0.001*action[1]**2 + 0.001*action[2]**2 + 0.001*action[3]**2 + penalty)
