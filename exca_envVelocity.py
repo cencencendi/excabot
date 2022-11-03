@@ -17,15 +17,36 @@ class ExcaBot(gym.Env):
 
         self.MAX_EPISODE = 1_000_000
         self.dt = 1.0/240.0
-        # threshold = np.array([13,13,13,0], dtype = np.float32) #max x,y,z the end effector can reach
-        self.min_obs = np.array([-3.1, -0.954, -0.1214, -0.32, -10.0, -10.0, -10.0, -10.0, -1000], dtype = np.float32)
-        self.max_obs = np.array([3.1, 1.03, 1.51, 3.14, 10.0, 10.0, 10.0, 10.0, 0], dtype = np.float32)
-        self.max_velocity = np.array([10.0, 10.0, 10.0, 10.0], dtype = np.float32)
+        self.max_theta = [-3.1, -0.954, -0.1214, -0.32]
+        self.min_theta = [3.1, 1.03, 1.51, 3.14]
+        self.max_angularVel = [1.0, 1.0, 1.0, 1.0]
+
+        self.min_obs = np.array(
+            [   
+                self.min_theta          +                       # Theta minimum each joint
+                -self.max_angularVel    +                       # Theta_dot minimum each joint
+                [0, 0]                                          # Norm_error, penalty
+            ], 
+                dtype = np.float32
+        )
+
+        self.max_obs = np.array(
+            [
+                self.max_theta          +                       # Theta maximum each Joint
+                self.max_angularVel     +                       # Theta_dot maximum each joint
+                [np.finfo(np.float32).max,
+                np.finfo(np.float32).max                        # norm_error, penalty maximum (inf)
+                ]
+            ], 
+            dtype = np.float32
+        )
+
+        self.max_velocity = np.array(self.max_angularVel, dtype = np.float32)
 
         self.observation_space = spaces.Box(low =self.min_obs, high = self.max_obs, dtype=np.float32)
         self.action_space = spaces.Box(low = -self.max_velocity, high = self.max_velocity, dtype=np.float32)
         self.steps_left = self.MAX_EPISODE
-        self.state = [0,0,0,0,0,0,0,0,0] #[theta0, theta1, theta2, theta3, thetadot0, thetadot1, thetadot2, thethadot3, norm_error]
+        self.state = [0,0,0,0,0,0,0,0,0,0] #[theta0, theta1, theta2, theta3, thetadot0, thetadot1, thetadot2, thethadot3, norm_error, penalty]
         self.orientation = [0,0,0,0] #qarternion
         self.theta_target = [1.5,-0.628,-0.125, 0.3] #theta0 = joint1, theta1 = joint2, theta2 = joint3, theta3 = joint4
         self.start_simulation()
@@ -53,17 +74,17 @@ class ExcaBot(gym.Env):
 
             diff_less = np.linalg.norm(self.theta_now[less_idx] - self.normalize(self.min_obs[:4])[less_idx])
             diff_more = np.linalg.norm(self.theta_now[more_idx] - self.normalize(self.min_obs[:4])[more_idx])
-            penalty = diff_less + diff_more
+            penalty = diff_less**2 + diff_more**2
 
         done = bool(self.steps_left<0)
         error = self.theta_now - self.theta_target
         norm_error = np.linalg.norm(error)**2
         if not done:
-            self.reward = - (norm_error + 0.001*action[0]**2 + 0.001*action[1]**2 + 0.001*action[2]**2 + 0.001*action[3]**2 + 0.01*penalty)
+            self.reward = - (norm_error + 0.01*penalty)
             self.steps_left -= 1
 
         #Update State
-        self.state = np.concatenate((self.theta_now, np.array(action), np.array([norm_error])), axis=None)
+        self.state = np.concatenate((self.theta_now, np.array(action), np.array([norm_error, penalty])), axis=None)
         
         self.act = action
         self.cur_done = done
@@ -85,13 +106,12 @@ class ExcaBot(gym.Env):
     def reset(self):
         p.resetSimulation()
         self.start_simulation()
-        self.state = [0,0,0,0,0,0,0,0,0]
-        # self.theta_now = np.array([0.0,0.0,0.0,0.0], dtype = np.float32)
+        self.state = [0,0,0,0,0,0,0,0,0,0]
         self.theta_now = self._get_joint_state()
         self.steps_left = self.MAX_EPISODE
         self.act = [0,0,0,0]
         self.cur_done = False
-        return np.array([self.state])
+        return np.array(self.state)
 
     def render(self, mode='human'):
         print(f'State {self.state}, action: {self.act}, done: {self.cur_done}')
