@@ -8,7 +8,7 @@ import time
 from exca_envVelocity import ExcaBot
 
 
-SIM_ON = 0
+SIM_ON = 1
 
 if __name__ == "__main__":
     env = ExcaBot(SIM_ON)
@@ -19,11 +19,11 @@ if __name__ == "__main__":
         done = False
         score = 0
 
-        for i in range(5): #while not done:
-            # env.render()
+        for i in range(1000): #while not done:
+            env.render()
             action= env.action_space.sample()
             obs, reward, done, _ = env.step(action)
-            print(env._get_joint_state())
-            time.sleep(0.5)
+            # print(env._get_joint_state())
+            # time.sleep(0.5)
             score += reward
         print(f"Score: {score}")
