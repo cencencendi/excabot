@@ -73,7 +73,7 @@ class ExcaBot(gym.Env):
             more_idx = np.argwhere(self.theta_now > self.normalize(self.max_obs[:4]))[:,0]
 
             diff_less = np.linalg.norm(self.theta_now[less_idx] - self.normalize(self.min_obs[:4])[less_idx])
-            diff_more = np.linalg.norm(self.theta_now[more_idx] - self.normalize(self.min_obs[:4])[more_idx])
+            diff_more = np.linalg.norm(self.theta_now[more_idx] - self.normalize(self.max_obs[:4])[more_idx])
             penalty = diff_less**2 + diff_more**2
 
         done = bool(self.steps_left<0)
