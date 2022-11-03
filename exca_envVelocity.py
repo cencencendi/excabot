@@ -20,11 +20,12 @@ class ExcaBot(gym.Env):
         self.max_theta = [-3.1, -0.954, -0.1214, -0.32]
         self.min_theta = [3.1, 1.03, 1.51, 3.14]
         self.max_angularVel = [1.0, 1.0, 1.0, 1.0]
+        self.min_angularVel = [-1.0, -1.0, -1.0, -1.0]
 
         self.min_obs = np.array(
             [   
                 self.min_theta          +                       # Theta minimum each joint
-                -self.max_angularVel    +                       # Theta_dot minimum each joint
+                self.min_angularVel    +                       # Theta_dot minimum each joint
                 [0, 0]                                          # Norm_error, penalty
             ], 
                 dtype = np.float32
