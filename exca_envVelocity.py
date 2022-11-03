@@ -22,24 +22,18 @@ class ExcaBot(gym.Env):
         self.max_angularVel = [1.0, 1.0, 1.0, 1.0]
         self.min_angularVel = [-1.0, -1.0, -1.0, -1.0]
 
-        self.min_obs = np.array(
-            [   
+        self.min_obs = np.array(   
                 self.min_theta          +                       # Theta minimum each joint
-                self.min_angularVel    +                       # Theta_dot minimum each joint
+                self.min_angularVel     +                       # Theta_dot minimum each joint
                 [0, 0]                                          # Norm_error, penalty
-            ], 
-                dtype = np.float32
         )
 
         self.max_obs = np.array(
-            [
                 self.max_theta          +                       # Theta maximum each Joint
                 self.max_angularVel     +                       # Theta_dot maximum each joint
                 [np.finfo(np.float32).max,
                 np.finfo(np.float32).max                        # norm_error, penalty maximum (inf)
                 ]
-            ], 
-            dtype = np.float32
         )
 
         self.max_velocity = np.array(self.max_angularVel, dtype = np.float32)
