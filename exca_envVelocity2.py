@@ -131,7 +131,7 @@ class ExcaBot(gym.Env):
     
     def normalize01(self, x):
         if len(x)==0:
-            return 0
+            return np.array([0,0,0,0])
 
         xmax = np.max(x)
         xmin = np.min(x)
