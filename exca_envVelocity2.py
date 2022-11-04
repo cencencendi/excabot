@@ -67,8 +67,15 @@ class ExcaBot(gym.Env):
             less_idx = np.argwhere(self.theta_now < self.min_obs[:4])[:,0]
             more_idx = np.argwhere(self.theta_now > self.max_obs[:4])[:,0]
 
-            diff_less = self.normalize01(self.theta_now[less_idx] - self.min_obs[:4][less_idx]).mean()
-            diff_more = self.normalize01(self.theta_now[more_idx] - self.max_obs[:4][more_idx]).mean()
+            if len(less_idx)!=0:
+                diff_less = self.normalize01(self.theta_now[less_idx] - self.min_obs[:4][less_idx]).mean()
+            else:
+                diff_less = 0
+            
+            if len(more_idx)!=0:
+                diff_more = self.normalize01(self.theta_now[more_idx] - self.max_obs[:4][more_idx]).mean()
+            else:
+                diff_more = 0
             penalty = (diff_less + diff_more)/2
 
         error = self.theta_now - self.theta_target
@@ -130,8 +137,6 @@ class ExcaBot(gym.Env):
         return ((x+np.pi)%(2*np.pi)) - np.pi
     
     def normalize01(self, x):
-        if len(x)==0:
-            return np.array([0,0,0,0])
 
         xmax = np.max(x)
         xmin = np.min(x)
