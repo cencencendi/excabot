@@ -5,7 +5,7 @@ import numpy as np
 import os
 import time
 
-from exca_envVelocity import ExcaBot
+from exca_envVelocity2 import ExcaBot
 
 
 SIM_ON = 1
