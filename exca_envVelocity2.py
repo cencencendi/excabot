@@ -17,8 +17,8 @@ class ExcaBot(gym.Env):
 
         self.MAX_EPISODE = 50_000
         self.dt = 1.0/240.0
-        self.max_theta = [-3.1, -0.954, -0.1214, -0.32]
-        self.min_theta = [3.1, 1.03, 1.51, 3.14]
+        self.max_theta = [3.1, 1.03, 1.51, 3.14]    
+        self.min_theta = [-3.1, -0.954, -0.1214, -0.32]
         self.max_angularVel = [1.0, 1.0, 1.0, 1.0]
         self.min_angularVel = [-1.0, -1.0, -1.0, -1.0]
 
@@ -67,16 +67,26 @@ class ExcaBot(gym.Env):
             less_idx = np.argwhere(self.theta_now < self.min_obs[:4])[:,0]
             more_idx = np.argwhere(self.theta_now > self.max_obs[:4])[:,0]
 
-            diff_less = np.linalg.norm(self.theta_now[less_idx] - self.min_obs[:4][less_idx])
-            diff_more = np.linalg.norm(self.theta_now[more_idx] - self.max_obs[:4][more_idx])
-            penalty = diff_less + diff_more
+            diff_less = self.normalize01(self.theta_now[less_idx] - self.min_obs[:4][less_idx])
+            diff_more = self.normalize01(self.theta_now[more_idx] - self.max_obs[:4][more_idx])
+            penalty = (diff_less + diff_more)/2
 
-        done = bool(self.steps_left<0)
         error = self.theta_now - self.theta_target
-        norm_error = np.linalg.norm(error)**2
+        norm_error = self.normalize01(error)
+        if (reward2 < 0.75):
+            done = True
+
+        else:
+            done = bool(self.steps_left<0)
+        
         if not done:
-            self.reward = - (norm_error + penalty)
+            reward1 = 1 - norm_error
+            reward2 = 1 - penalty
+            self.reward = reward1 + reward2
             self.steps_left -= 1
+        
+        else:
+            self.reward = -100
 
         #Update State
         self.state = np.concatenate((self.theta_now, np.array(action), np.array([norm_error, penalty])), axis=None)
@@ -117,3 +127,9 @@ class ExcaBot(gym.Env):
 
     def normalize(self, x):
         return ((x+np.pi)%(2*np.pi)) - np.pi
+    
+    def normalize01(self, x):
+        xmax = np.max(x)
+        xmin = np.min(x)
+
+        return (x - xmin)/(xmax - xmin)
