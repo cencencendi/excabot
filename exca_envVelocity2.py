@@ -137,8 +137,12 @@ class ExcaBot(gym.Env):
         return ((x+np.pi)%(2*np.pi)) - np.pi
     
     def normalize01(self, x):
+        try:
+            xmax = np.max(x)
+            xmin = np.min(x)
 
-        xmax = np.max(x)
-        xmin = np.min(x)
-
-        return (x - xmin)/(xmax - xmin)
+            result = (x - xmin)/(xmax - xmin)
+        except RuntimeWarning:
+            result = np.array([0,0,0,0])
+        
+        return result
