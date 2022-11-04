@@ -63,16 +63,17 @@ class ExcaBot(gym.Env):
         self.theta_now = self._get_joint_state()
         penalty = 0
 
-        if np.any(self.theta_now > self.max_obs[:4]) or np.any(self.theta_now < self.min_obs[:4]):
-            less_idx = np.argwhere(self.theta_now < self.min_obs[:4])[:,0]
-            more_idx = np.argwhere(self.theta_now > self.max_obs[:4])[:,0]
+        if np.any(self.theta_now > np.array(self.max_theta)) or np.any(self.theta_now < np.array(self.min_theta)):
+            less_idx = np.argwhere(self.theta_now < np.array(self.min_theta))[:,0]
+            more_idx = np.argwhere(self.theta_now > np.array(self.max_theta))[:,0]
 
-            diff_less = self.normalize01(self.theta_now[less_idx] - self.min_obs[:4][less_idx]).mean()
-            diff_more = self.normalize01(self.theta_now[more_idx] - self.max_obs[:4][more_idx]).mean()
+            diff_less = np.linalg.norm(self.theta_now[less_idx] - np.array(self.min_theta)[less_idx])
+            diff_more = np.linalg.norm(self.theta_now[more_idx] - np.array(self.max_theta)[more_idx])
             penalty = (diff_less + diff_more)/2
 
         error = self.theta_now - self.theta_target
-        norm_error = self.normalize01(error).mean()
+        norm_error = self.normalize01(error)
+        norm_error = np.linalg.norm(norm_error)
         reward1 = 1 - norm_error
         reward2 = 1 - penalty
 
@@ -139,3 +140,4 @@ class ExcaBot(gym.Env):
             result = np.array([0,0,0,0])
         
         return result
+
