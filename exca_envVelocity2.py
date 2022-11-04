@@ -73,6 +73,9 @@ class ExcaBot(gym.Env):
 
         error = self.theta_now - self.theta_target
         norm_error = self.normalize01(error)
+        reward1 = 1 - norm_error
+        reward2 = 1 - penalty
+        
         if (reward2 < 0.75):
             done = True
 
@@ -80,8 +83,6 @@ class ExcaBot(gym.Env):
             done = bool(self.steps_left<0)
         
         if not done:
-            reward1 = 1 - norm_error
-            reward2 = 1 - penalty
             self.reward = reward1 + reward2
             self.steps_left -= 1
         
