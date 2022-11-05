@@ -78,7 +78,7 @@ class ExcaBot(gym.Env):
         reward2 = 1 - penalty
         reward3 = 0.5 - 0.0125*abs(action[0]+action[1]+action[2]+action[3])
 
-        if (reward2 < 0.8):
+        if (reward2 < 0.75):
             done = True
 
         else:
