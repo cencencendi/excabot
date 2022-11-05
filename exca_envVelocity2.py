@@ -15,12 +15,12 @@ class ExcaBot(gym.Env):
         else:
             physicsClient = p.connect(p.DIRECT)#or p.DIRECT for non-graphical version
 
-        self.MAX_EPISODE = 50_000
+        self.MAX_EPISODE = 10_000
         self.dt = 1.0/240.0
         self.max_theta = [3.1, 1.03, 1.51, 3.14]    
         self.min_theta = [-3.1, -0.954, -0.1214, -0.32]
-        self.max_angularVel = [1.0, 1.0, 1.0, 1.0]
-        self.min_angularVel = [-1.0, -1.0, -1.0, -1.0]
+        self.max_angularVel = [10.0, 10.0, 10.0, 10.0]
+        self.min_angularVel = [-10.0, -10.0, -10.0, -10.0]
 
         self.min_obs = np.array(   
                 self.min_theta          +                       # Theta minimum each joint
@@ -73,18 +73,19 @@ class ExcaBot(gym.Env):
 
         error = self.theta_now - self.theta_target
         norm_error = self.normalize01(error)
-        norm_error = np.linalg.norm(norm_error)
+        norm_error = np.mean(norm_error)
         reward1 = 1 - norm_error
         reward2 = 1 - penalty
+        reward3 = 0.5 - 0.0125*abs(action[0]+action[1]+action[2]+action[3])
 
-        if (reward2 < 0.75):
+        if (reward2 < 0.8):
             done = True
 
         else:
             done = bool(self.steps_left<0)
         
         if not done:
-            self.reward = reward1 + reward2
+            self.reward = reward1 + reward2 + reward3
             self.steps_left -= 1
         
         else:
