@@ -11,7 +11,7 @@ SIM_ON = 1
 
 if __name__ == "__main__":
     env = ExcaBot(SIM_ON)
-    model = PPO.load('Training/Saved Models/PPO_5000000(11)', env=env)
+    model = PPO.load('Training/Saved Models/PPO_5000000(14)', env=env)
     obs = env.reset()
     score = 0
     while True:

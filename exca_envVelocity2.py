@@ -15,12 +15,12 @@ class ExcaBot(gym.Env):
         else:
             physicsClient = p.connect(p.DIRECT)#or p.DIRECT for non-graphical version
 
-        self.MAX_EPISODE = 10_000
+        self.MAX_EPISODE = 1_000
         self.dt = 1.0/240.0
         self.max_theta = [3.1, 1.03, 1.51, 3.14]    
         self.min_theta = [-3.1, -0.954, -0.1214, -0.32]
-        self.max_angularVel = [10.0, 10.0, 10.0, 10.0]
-        self.min_angularVel = [-10.0, -10.0, -10.0, -10.0]
+        self.max_angularVel = [1.0, 1.0, 1.0, 1.0]
+        self.min_angularVel = [-1.0, -1.0, -1.0, -1.0]
 
         self.min_obs = np.array(   
                 self.min_theta          +                       # Theta minimum each joint
@@ -43,7 +43,7 @@ class ExcaBot(gym.Env):
         self.steps_left = self.MAX_EPISODE
         self.state = [0,0,0,0,0,0,0,0,0,0] #[theta0, theta1, theta2, theta3, thetadot0, thetadot1, thetadot2, thethadot3, norm_error, penalty]
         self.orientation = [0,0,0,0] #qarternion
-        self.theta_target = [1.5,-0.628,-0.125, 0.3] #theta0 = joint1, theta1 = joint2, theta2 = joint3, theta3 = joint4
+        self.theta_target = [0,-0.4,-0.1, 1.1] #theta0 = joint1, theta1 = joint2, theta2 = joint3, theta3 = joint4
         self.start_simulation()
 
     def step(self, action):
