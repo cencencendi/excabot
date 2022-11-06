@@ -15,7 +15,7 @@ class ExcaBot(gym.Env):
         else:
             physicsClient = p.connect(p.DIRECT)#or p.DIRECT for non-graphical version
 
-        self.MAX_EPISODE = 50_000
+        self.MAX_EPISODE = 10_000
         self.dt = 1.0/240.0
         self.max_theta = [3.1, 1.03, 1.51, 3.14]    
         self.min_theta = [-3.1, -0.954, -0.1214, -0.32]
@@ -25,15 +25,13 @@ class ExcaBot(gym.Env):
         self.min_obs = np.array(   
                 self.min_theta          +                       # Theta minimum each joint
                 self.min_angularVel     +                       # Theta_dot minimum each joint
-                [0, 0]                                          # Norm_error, penalty
+                [0]                                          # Norm_error, penalty
         )
 
         self.max_obs = np.array(
                 self.max_theta          +                       # Theta maximum each Joint
                 self.max_angularVel     +                       # Theta_dot maximum each joint
-                [np.finfo(np.float32).max,
-                np.finfo(np.float32).max                        # norm_error, penalty maximum (inf)
-                ]
+                [np.finfo(np.float32).max]                       # norm_error, penalty maximum (inf)
         )
 
         self.max_velocity = np.array(self.max_angularVel, dtype = np.float32)
@@ -41,9 +39,9 @@ class ExcaBot(gym.Env):
         self.observation_space = spaces.Box(low =self.min_obs, high = self.max_obs, dtype=np.float32)
         self.action_space = spaces.Box(low = -self.max_velocity, high = self.max_velocity, dtype=np.float32)
         self.steps_left = self.MAX_EPISODE
-        self.state = [0,0,0,0,0,0,0,0,0,0] #[theta0, theta1, theta2, theta3, thetadot0, thetadot1, thetadot2, thethadot3, norm_error, penalty]
+        self.state = [0,0,0,0,0,0,0,0,0] #[theta0, theta1, theta2, theta3, thetadot0, thetadot1, thetadot2, thethadot3, norm_error, penalty]
         self.orientation = [0,0,0,0] #qarternion
-        self.theta_target = [1.5,-0.628,-0.125, 0.3] #theta0 = joint1, theta1 = joint2, theta2 = joint3, theta3 = joint4
+        self.theta_target = [0,-0.4,-0.1, 1.1] #theta0 = joint1, theta1 = joint2, theta2 = joint3, theta3 = joint4
         self.start_simulation()
 
     def step(self, action):
@@ -61,27 +59,18 @@ class ExcaBot(gym.Env):
 
         #Calculate error
         self.theta_now = self._get_joint_state()
-        penalty = 0
 
         if np.any(self.theta_now > np.array(self.max_theta)) or np.any(self.theta_now < np.array(self.min_theta)):
-            less_idx = np.argwhere(self.theta_now < np.array(self.min_theta))[:,0]
-            more_idx = np.argwhere(self.theta_now > np.array(self.max_theta))[:,0]
-
-            diff_less = np.linalg.norm(self.theta_now[less_idx] - np.array(self.min_theta)[less_idx])
-            diff_more = np.linalg.norm(self.theta_now[more_idx] - np.array(self.max_theta)[more_idx])
-            penalty = (diff_less + diff_more)/2
+            done = True
 
         error = self.theta_now - self.theta_target
         norm_error = self.normalize01(error)
-        norm_error = np.linalg.norm(norm_error)
+        norm_error = np.mean(norm_error)
         reward1 = 1 - norm_error
-        reward2 = 1 - penalty
+        reward2 = 0.5 - 0.125*abs(action[0]+action[1]+action[2]+action[3])
 
-        if (reward2 < 0.9):
-            done = True
 
-        else:
-            done = bool(self.steps_left<0)
+        done = bool(self.steps_left<0)
         
         if not done:
             self.reward = reward1 + reward2
@@ -91,7 +80,7 @@ class ExcaBot(gym.Env):
             self.reward = -100
 
         #Update State
-        self.state = np.concatenate((self.theta_now, np.array(action), np.array([norm_error, penalty])), axis=None)
+        self.state = np.concatenate((self.theta_now, np.array(action), np.array([norm_error])), axis=None)
         
         self.act = action
         self.cur_done = done
@@ -113,7 +102,7 @@ class ExcaBot(gym.Env):
     def reset(self):
         p.resetSimulation()
         self.start_simulation()
-        self.state = [0,0,0,0,0,0,0,0,0,0]
+        self.state = [0,0,0,0,0,0,0,0,0]
         self.theta_now = self._get_joint_state()
         self.steps_left = self.MAX_EPISODE
         self.act = [0,0,0,0]
