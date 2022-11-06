@@ -11,12 +11,16 @@ SIM_ON = 1
 
 if __name__ == "__main__":
     env = ExcaBot(SIM_ON)
-    model = PPO.load('Training/Saved Models/PPO_5000000(14)', env=env)
+    model = PPO.load('Training/Saved Models/PPO_5000000(16)', env=env)
     obs = env.reset()
     score = 0
-    while True:
+    done = False
+    step = 0
+    while not done:
         env.render()
         action, _ = model.predict(obs)
         obs, reward, done, info = env.step(action)
+        print(reward)
         score += reward
-    print(score)
+        step+=1
+    print(f"Score: {score}, with step: {step}")
