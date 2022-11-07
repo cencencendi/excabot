@@ -61,8 +61,8 @@ class ExcaBot(gym.Env):
         self.theta_now = self._get_joint_state()
 
         error = self.theta_now - self.theta_target
-        norm_error = np.mean(error)
-        if norm_error<1e-2:
+        self.norm_error = np.mean(error)
+        if abs(self.norm_error)<1e-2:
             reward = 1
         else:
             reward = 0
@@ -80,7 +80,7 @@ class ExcaBot(gym.Env):
             self.reward = -100
 
         #Update State
-        self.state = np.concatenate((self.theta_now, np.array(action), np.array([norm_error])), axis=None)
+        self.state = np.concatenate((self.theta_now, np.array(action), np.array([self.norm_error])), axis=None)
         
         self.act = action
         self.cur_done = done

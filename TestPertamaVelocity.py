@@ -4,10 +4,10 @@ import math
 import numpy as np
 import os
 
-from exca_envVelocity2 import ExcaBot
+from exca_envVelocity3 import ExcaBot
 from stable_baselines3 import PPO
 
-SIM_ON = 1
+SIM_ON = 0
 
 if __name__ == "__main__":
     env = ExcaBot(SIM_ON)
@@ -20,7 +20,7 @@ if __name__ == "__main__":
         env.render()
         action, _ = model.predict(obs)
         obs, reward, done, info = env.step(action)
-        print(reward)
+        print(env.norm_error)
         score += reward
         step+=1
     print(f"Score: {score}, with step: {step}")
