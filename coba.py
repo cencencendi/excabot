@@ -14,10 +14,10 @@ startOrientation = p.getQuaternionFromEuler([0,0,0])
 boxId = p.loadURDF("aba_excavator/excavator.urdf",startPos, startOrientation)
 
 for i in range(1000):
-    p.setJointMotorControl2(boxId, 1 , p.POSITION_CONTROL, targetPosition = 0)
-    p.setJointMotorControl2(boxId, 2 , p.POSITION_CONTROL, targetPosition = -0.4, force= 250_000)
-    p.setJointMotorControl2(boxId, 3 , p.POSITION_CONTROL, targetPosition = -0.1, force= 250_000)
-    p.setJointMotorControl2(boxId, 4 , p.POSITION_CONTROL, targetPosition = 1.1)
+    p.setJointMotorControl2(boxId, 1 , p.VELOCITY_CONTROL, targetVelocity = 0)
+    p.setJointMotorControl2(boxId, 2 , p.VELOCITY_CONTROL, targetVelocity = 0.4, force= 250_000)
+    p.setJointMotorControl2(boxId, 3 , p.VELOCITY_CONTROL, targetVelocity = 0.1, force= 250_000)
+    p.setJointMotorControl2(boxId, 4 , p.VELOCITY_CONTROL, targetVelocity = 0.1)
     # (linkWorldPosition,
     #         linkWorldOrientation,
     #         localInertialFramePosition,
@@ -31,4 +31,4 @@ for i in range(1000):
     time.sleep(1.0/240.)
     theta0, theta1, theta2, theta3 = p.getJointStates(boxId, [1,2,3,4])
     print(theta0[0], theta1[0], theta2[0], theta3[0])
-
+p.disconnect()

@@ -3,15 +3,16 @@ import collections
 import math
 import numpy as np
 import os
+import pybullet as p
 
-from exca_envVelocity3 import ExcaBot
+from exca_envVelocity2 import ExcaBot
 from stable_baselines3 import PPO
 
 SIM_ON = 0
 
 if __name__ == "__main__":
     env = ExcaBot(SIM_ON)
-    model = PPO.load('Training/Saved Models/PPO_5000000(16)', env=env)
+    model = PPO.load('Training/Saved Models/PPO_25000(22)', env=env)
     obs = env.reset()
     score = 0
     done = False
@@ -24,3 +25,4 @@ if __name__ == "__main__":
         score += reward
         step+=1
     print(f"Score: {score}, with step: {step}")
+    # p.disconnect()

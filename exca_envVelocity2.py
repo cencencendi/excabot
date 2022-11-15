@@ -15,12 +15,12 @@ class ExcaBot(gym.Env):
         else:
             physicsClient = p.connect(p.DIRECT)#or p.DIRECT for non-graphical version
 
-        self.MAX_EPISODE = 20_000
+        self.MAX_EPISODE = 25_000
         self.dt = 1.0/240.0
         self.max_theta = [3.1, 1.03, 1.51, 3.14]    
         self.min_theta = [-3.1, -0.954, -0.1214, -0.32]
-        self.max_angularVel = [1, 1, 1, 1]
-        self.min_angularVel = [-1, -1, -1, -1]
+        self.max_angularVel = [0.5, 0.5, 0.5, 0.5]
+        self.min_angularVel = [-0.5, -0.5, -0.5, -0.5]
 
         self.min_obs = np.array(   
                 self.min_theta          +                       # Theta minimum each joint
@@ -60,12 +60,12 @@ class ExcaBot(gym.Env):
         #Calculate error
         self.theta_now = self._get_joint_state()
 
-        error = self.theta_now - self.theta_target
+        error = abs(self.theta_now - self.theta_target)
         self.norm_error = np.mean(error)
         if abs(self.norm_error)<1e-2:
-            reward = 1
+            reward = 5
         else:
-            reward = 0
+            reward = 0.2 - 0.1*self.norm_error
 
         if np.any(self.theta_now > np.array(self.max_theta)) or np.any(self.theta_now < np.array(self.min_theta)):
             done = True
@@ -73,11 +73,11 @@ class ExcaBot(gym.Env):
             done = bool(self.steps_left<0)
         
         if not done:
-            self.reward += reward
+            self.reward = reward
             self.steps_left -= 1
         
         else:
-            self.reward = -100
+            self.reward = -1000
 
         #Update State
         self.state = np.concatenate((self.theta_now, np.array(action), np.array([self.norm_error])), axis=None)

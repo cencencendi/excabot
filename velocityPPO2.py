@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     log_path = os.path.join('Training', 'Logs')
     model = PPO('MlpPolicy', env, verbose=1, tensorboard_log=log_path)
-    model.learn(total_timesteps=5000000)
+    model.learn(total_timesteps=15000000)
 
-    model_save_path = os.path.join('Training', 'Saved Models', 'PPO_20000(17)')
+    model_save_path = os.path.join('Training', 'Saved Models', 'PPO_25000(23)')
     model.save(model_save_path)
