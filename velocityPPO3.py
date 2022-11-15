@@ -7,7 +7,7 @@ import os
 from exca_envVelocity3 import ExcaBot
 from stable_baselines3 import PPO
 
-SIM_ON = 0
+SIM_ON = 1
 
 if __name__ == "__main__":
     env = ExcaBot(SIM_ON)
